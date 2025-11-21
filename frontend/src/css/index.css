@@ -1,0 +1,21 @@
+:root{
+  --bg-start: #e0f7fa;
+  --bg-end: #f1f8e9;
+}
+
+html,body,#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+input[type="file"] {
+  display: block;
+}
