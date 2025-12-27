@@ -1,33 +1,64 @@
-import React from "react";
-import { Container, Typography, Box } from "@mui/material";
+import React, { useEffect, useState } from "react";
 import ResultCard from "../components/ResultCard";
 
 export default function Result() {
-  const raw = localStorage.getItem("resumeAnalysis");
-  const data = raw ? JSON.parse(raw) : null;
+  const [result, setResult] = useState(null);
 
-  if (!data) {
-    return (
-      <Container sx={{ mt: 6, textAlign: "center" }}>
-        <Typography variant="h6">No analysis found. Please upload a resume first.</Typography>
-      </Container>
-    );
+  useEffect(() => {
+    const stored = localStorage.getItem("atsResult");
+    if (stored) {
+      setResult(JSON.parse(stored));
+    }
+  }, []);
+
+  function downloadAnalysisJson() {
+    if (!result) return;
+
+    const jsonString = JSON.stringify(result, null, 2);
+
+    const blob = new Blob([jsonString], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = (result.filename || "resume_analysis") + ".json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
-  // Normalize data fields (backend should provide these keys)
-  const score = data.score ?? 0;
-  const skills = Array.isArray(data.skills) ? data.skills.join(", ") : data.skills ?? "N/A";
-  const suggestions = data.suggestions ?? "N/A";
+  if (!result) {
+    return <div style={{ padding: "1rem" }}>No result available.</div>;
+  }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 6 }}>
-      <Typography variant="h4" gutterBottom>Resume Analysis</Typography>
+    <div style={{ padding: "1rem" }}>
+      <h1>ATS Analysis Result</h1>
 
-      <Box sx={{ mt: 2 }}>
-        <ResultCard title="Score" value={score} />
-        <ResultCard title="Skills" value={skills} />
-        <ResultCard title="Suggestions" value={suggestions} />
-      </Box>
-    </Container>
+      <ResultCard title="Score" value={result.ats_score} />
+      <ResultCard title="Match Score" value={result.match_score} />
+      <ResultCard title="Summary" value={result.summary} />
+      <ResultCard
+        title="Skills Match"
+        value={(result.skill_match || []).join(", ")}
+      />
+      <ResultCard
+        title="Skills Mismatch"
+        value={(result.skill_mismatch || []).join(", ")}
+      />
+      <ResultCard
+        title="Rewritten Resume"
+        value={result.rewritten_resume}
+      />
+
+      <button
+        onClick={downloadAnalysisJson}
+        style={{ marginTop: "0.75rem", padding: "0.5rem 1rem" }}
+      >
+        Download AI Analysis
+      </button>
+    </div>
   );
 }
